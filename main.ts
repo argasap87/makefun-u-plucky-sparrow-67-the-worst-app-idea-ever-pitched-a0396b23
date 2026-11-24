@@ -30,6 +30,17 @@ if (LINE.includes("\n") || LINE.includes("\r")) {
   process.exit(1);
 }
 
+// Reviser gate (second session): reject invisible control characters other
+// than newline/CR (already rejected above) — C0 controls and DEL
+// (\u0000-\u0008, \u000B, \u000C, \u000E-\u001F, \u007F). They are invisible
+// in the entry, could be pasted in silently from a chat or editor, and can
+// corrupt the scorer's read of an otherwise valid-looking line. A pitch
+// sentence never legitimately contains one.
+if (/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(LINE)) {
+  console.error("gate failed: line contains an invisible control character");
+  process.exit(1);
+}
+
 mkdirSync("/output", { recursive: true });
 writeFileSync("/output/entry.txt", LINE, "utf8");
 
